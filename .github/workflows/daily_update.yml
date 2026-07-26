@@ -6,11 +6,18 @@ on:
     - cron: '0 23 * * *'
   workflow_dispatch:
     inputs:
-      full_refresh:
-        description: '全量重爬（忽略缓存）'
+      mode:
+        description: '运行模式'
         required: false
-        default: 'false'
-        type: boolean
+        default: 'extract_only'
+        type: choice
+        options:
+          - extract_only
+            description: '仅重新提取（不爬取，推荐日常使用）'
+          - incremental_crawl
+            description: '增量爬取 + 重新提取'
+          - full_crawl
+            description: '全量重爬 + 重新提取'
 
 permissions:
   contents: write
@@ -27,8 +34,6 @@ jobs:
     steps:
       - name: 检出代码
         uses: actions/checkout@v4
-        with:
-          lfs: false
 
       - name: 配置 Python
         uses: actions/setup-python@v5
@@ -42,11 +47,17 @@ jobs:
       - name: 运行每日更新
         run: |
           cd 央行货币政策看板_融合版
-          if [ "${{ inputs.full_refresh }}" = "true" ]; then
-            python daily_update.py --full
-          else
-            python daily_update.py
-          fi
+          case "${{ inputs.mode || 'extract_only' }}" in
+            incremental_crawl)
+              python daily_update.py --crawl
+              ;;
+            full_crawl)
+              python daily_update.py --full
+              ;;
+            *)
+              python daily_update.py
+              ;;
+          esac
 
       - name: 提交数据更新
         run: |

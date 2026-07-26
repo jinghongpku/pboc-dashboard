@@ -7,17 +7,14 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: '运行模式'
+        description: '运行模式：extract_only=仅提取 / incremental_crawl=增量爬取 / full_crawl=全量重爬'
         required: false
         default: 'extract_only'
         type: choice
         options:
           - extract_only
-            description: '仅重新提取（不爬取，推荐日常使用）'
           - incremental_crawl
-            description: '增量爬取 + 重新提取'
           - full_crawl
-            description: '全量重爬 + 重新提取'
 
 permissions:
   contents: write
